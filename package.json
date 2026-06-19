@@ -1,6 +1,6 @@
 {
   "name": "@koralabs/kora-secrets-crypto",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Social Secret Recovery — pure crypto core + bundle format (Shamir over GF(256), X25519/HKDF/AES-GCM sealed shares, blake2b fingerprints). No chain, no DOM, no network.",
   "license": "MIT",
