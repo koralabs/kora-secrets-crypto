@@ -1,0 +1,39 @@
+{
+  "name": "@koralabs/kora-secrets-crypto",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Social Secret Recovery — pure crypto core + bundle format (Shamir over GF(256), X25519/HKDF/AES-GCM sealed shares, blake2b fingerprints). No chain, no DOM, no network.",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@noble/ciphers": "^1.2.1",
+    "@noble/curves": "^1.8.1",
+    "@noble/hashes": "^1.7.1",
+    "@scure/base": "^1.2.6",
+    "@scure/bip39": "^1.5.4",
+    "canonicalize": "^2.0.0",
+    "shamir-secret-sharing": "^0.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "typescript": "^5.8.2"
+  }
+}
