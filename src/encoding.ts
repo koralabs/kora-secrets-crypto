@@ -1,4 +1,4 @@
-import { mnemonicToEntropy, validateMnemonic } from '@scure/bip39';
+import { entropyToMnemonic, mnemonicToEntropy, validateMnemonic } from '@scure/bip39';
 import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
 
 import { canonicalJson } from './bytes.ts';
@@ -114,4 +114,35 @@ function encodeOpaqueBytes(input: Uint8Array): Uint8Array {
   }
   // Defensive copy so later mutation of the caller's buffer cannot change the secret.
   return input.slice();
+}
+
+const utf8Dec = new TextDecoder('utf-8', { fatal: true });
+
+/**
+ * Inverse of {@link encodeSecret} for recovery UX: turn reconstructed `secret_bytes` back into
+ * what the user originally entered. bip39 entropy round-trips through the English wordlist to the
+ * mnemonic; text/JCS decode as UTF-8; opaque bytes present as hex (callers handle raw downloads).
+ */
+export function presentSecret(bytes: Uint8Array, type: SecretType): string {
+  switch (type) {
+    case 'bip39_entropy':
+      if (!(BIP39_ENTROPY_LENGTHS as readonly number[]).includes(bytes.length)) {
+        throw new SsrError(
+          SsrErrorCode.InvalidEntropyLength,
+          `entropy length ${bytes.length} not in {${BIP39_ENTROPY_LENGTHS.join(',')}}`
+        );
+      }
+      return entropyToMnemonic(bytes, englishWordlist);
+    case 'utf8_text':
+    case 'json_jcs':
+      try {
+        return utf8Dec.decode(bytes);
+      } catch {
+        throw new SsrError(SsrErrorCode.InvalidInputType, `${type} bytes are not valid UTF-8`);
+      }
+    case 'opaque_bytes':
+      return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    default:
+      throw new SsrError(SsrErrorCode.UnknownSecretType, `unsupported secret type: ${String(type)}`);
+  }
 }

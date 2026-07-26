@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { encodeSecret } from './encoding.ts';
+import { encodeSecret, presentSecret } from './encoding.ts';
 import { isSsrError, SsrErrorCode } from './errors.ts';
 
 function hex(b: Uint8Array): string {
@@ -151,6 +151,47 @@ test('unknown secret type is rejected', () => {
   assert.throws(
     // @ts-expect-error intentionally invalid discriminant
     () => encodeSecret({ type: 'nope', input: 'x' }),
+    (e) => isSsrError(e, SsrErrorCode.UnknownSecretType)
+  );
+});
+
+// --- presentSecret (recovery UX inverse) ------------------------------------
+
+test('presentSecret round-trips every secret type back to what the user entered', () => {
+  // Feature: reconstructed secret_bytes render back as the original user input.
+  // Failure caught: a wordlist/encoding mismatch would show the user a wrong secret after recovery.
+  // Negative control: tampering one entropy byte yields a different mnemonic (checksum word changes).
+  const mnemonic =
+    'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+  const m = encodeSecret({ type: 'bip39_entropy', input: mnemonic });
+  assert.equal(presentSecret(m.secret_bytes, 'bip39_entropy'), mnemonic);
+  const tampered = m.secret_bytes.slice();
+  tampered[0] ^= 0xff;
+  assert.notEqual(presentSecret(tampered, 'bip39_entropy'), mnemonic);
+
+  const t = encodeSecret({ type: 'utf8_text', input: 'correct horse battery staple' });
+  assert.equal(presentSecret(t.secret_bytes, 'utf8_text'), 'correct horse battery staple');
+
+  const j = encodeSecret({ type: 'json_jcs', input: { b: 2, a: 1 } });
+  assert.equal(presentSecret(j.secret_bytes, 'json_jcs'), '{"a":1,"b":2}');
+
+  const o = encodeSecret({ type: 'opaque_bytes', input: new Uint8Array([0xde, 0xad]) });
+  assert.equal(presentSecret(o.secret_bytes, 'opaque_bytes'), 'dead');
+});
+
+test('presentSecret rejects malformed bytes for the claimed type', () => {
+  // Feature: presentation validates instead of showing garbage.
+  // Failure caught: silently rendering a wrong-length entropy or invalid-UTF-8 "secret".
+  assert.throws(
+    () => presentSecret(new Uint8Array(15), 'bip39_entropy'),
+    (e) => isSsrError(e, SsrErrorCode.InvalidEntropyLength)
+  );
+  assert.throws(
+    () => presentSecret(new Uint8Array([0xff, 0xfe, 0xff]), 'utf8_text'),
+    (e) => isSsrError(e, SsrErrorCode.InvalidInputType)
+  );
+  assert.throws(
+    () => presentSecret(new Uint8Array([1]), 'nope' as never),
     (e) => isSsrError(e, SsrErrorCode.UnknownSecretType)
   );
 });
