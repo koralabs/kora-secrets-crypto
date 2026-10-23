@@ -1,5 +1,9 @@
 # @koralabs/kora-secrets-crypto
 
+## Contributor test policy
+
+Tests and coverage are local-only; GitHub Actions must not execute them directly or through package lifecycle scripts, composites, templates, or shared build/publish helpers. Preserve local test scripts. Build, lint, publication, deployment, and production guards remain permitted. Retire obsolete required test checks from branch protections.
+
 The pure-crypto core for **Social Secret Recovery** (SSR) on ADA Handles.
 
 - Shamir secret sharing over GF(256) (with a 1-of-1 replication scheme tag)
