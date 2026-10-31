@@ -1,0 +1,17 @@
+# kora-secrets-crypto: files whose change must be reviewed by the operator (see CANONICAL_CONTRACT.md).
+# Exact repo-root-relative paths only. Tests, README, package files and the build copy script are normal review.
+.enclave
+CANONICAL_CONTRACT.md
+.github/workflows/deploy.yml
+src/aead-ecdh.ts
+src/share-encryption.ts
+src/reencryption.ts
+src/sss.ts
+src/bundle.ts
+src/constants.ts
+src/encoding.ts
+src/keys.ts
+src/identity.ts
+src/fingerprint.ts
+src/data/fingerprint-emoji-v1.json
+src/data/fingerprint-words-v1.json
