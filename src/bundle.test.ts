@@ -147,3 +147,12 @@ test('assertBundleHash throws BUNDLE_HASH_MISMATCH on a tampered bundle', async 
   const forged: Bundle = { ...b, integrity: { bundle_hash_blake2b256_hex: '00'.repeat(32) } };
   assert.throws(() => assertBundleHash(forged), (e) => isSsrError(e, SsrErrorCode.BundleHashMismatch));
 });
+
+test('computeBundleHashHex rejects a bundle that JSON canonicalization cannot represent', async () => {
+  const { computeBundleHashHex } = await import('./bundle.ts');
+  const unrepresentable = { toJSON: () => undefined } as never;
+  assert.throws(
+    () => computeBundleHashHex(unrepresentable),
+    (err: unknown) => isSsrError(err) && err.code === SsrErrorCode.InvalidBundle
+  );
+});
