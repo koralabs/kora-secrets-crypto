@@ -6,6 +6,7 @@ on:
         paths-ignore:
             - '.github/workflows/pr-tests.yml'
             - '.github/workflows/deploy.yml'
+            - '.local-test-evidence.json'
     workflow_dispatch:
 permissions:
     contents: read
