@@ -49,8 +49,10 @@ jobs:
                       echo "publish=true" >> "$GITHUB_OUTPUT"
                   fi
 
-            # npm publish via OIDC trusted publishing. main=lib/index.js + files=[lib], so publish
+            # npm publish with the NPM_TOKEN secret (no trusted publisher is configured for this new package). main=lib/index.js + files=[lib], so publish
             # straight from the package root.
             - name: Publish to npm
               if: steps.ver.outputs.publish == 'true'
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: npm publish --provenance --access public
